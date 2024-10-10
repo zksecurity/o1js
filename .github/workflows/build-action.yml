@@ -6,6 +6,9 @@ on:
       - develop
   pull_request:
   workflow_dispatch: {}
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   Prepare:
@@ -22,7 +25,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Cache dependencies and build
         uses: actions/cache@v4
@@ -81,7 +84,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -125,7 +128,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -183,13 +186,6 @@ jobs:
           echo "### Test Results for Unit Tests Chunk ${{ matrix.chunk }}" >> $GITHUB_STEP_SUMMARY
           cat profiling.md >> $GITHUB_STEP_SUMMARY
 
-  Build-And-Test-Server-Unit-Tests:
-    name: Build-And-Test-Server (Unit tests)
-    needs: [Run-Unit-Tests]
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "All unit tests completed successfully"
-
   Build-And-Test-Web:
     needs: Prepare
     timeout-minutes: 90
@@ -204,7 +200,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Restore npm cache
         uses: actions/cache@v4
@@ -240,66 +236,3 @@ jobs:
           name: e2e-tests-report
           path: tests/report/
           retention-days: 30
-
-  Release-on-NPM:
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 180
-    runs-on: ubuntu-latest
-    needs: [Build-And-Test-Server, Run-Unit-Tests, Build-And-Test-Web]
-    steps:
-      - name: Restore repository
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ github.sha }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Build o1js
-        run: |
-          npm ci
-          npm run prepublishOnly
-
-      - name: Publish to NPM if version has changed
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          strategy: upgrade
-        env:
-          INPUT_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  Release-mina-signer-on-NPM:
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 180
-    runs-on: ubuntu-latest
-    needs: [Build-And-Test-Server, Run-Unit-Tests, Build-And-Test-Web]
-    steps:
-      - name: Restore repository
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ github.sha }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Build mina-signer
-        run: |
-          npm ci
-          cd src/mina-signer
-          npm ci
-          npm run prepublishOnly
-
-      - name: Publish to NPM if version has changed
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: './src/mina-signer/package.json'
-          strategy: upgrade
-        env:
-          INPUT_TOKEN: ${{ secrets.NPM_TOKEN }}
