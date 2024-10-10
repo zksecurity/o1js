@@ -18,6 +18,7 @@ import {
   lessThanOrEqualGeneric,
 } from './gadgets/comparison.js';
 import { assert } from '../util/assert.js';
+import { mapValue } from './types/provable-derivers.js';
 
 // external API
 export { UInt8, UInt32, UInt64, Int64, Sign };
@@ -1425,9 +1426,15 @@ class Int64 extends CircuitValue implements BalanceChange {
 /**
  * A 8 bit unsigned integer with values ranging from 0 to 255.
  */
-class UInt8 extends Struct({
-  value: Field,
-}) {
+class UInt8 extends Struct(
+  mapValue(
+    Struct({
+      value: Field,
+    }),
+    ({ value }) => value,
+    (value) => ({ value })
+  )
+) {
   static NUM_BITS = 8;
 
   /**

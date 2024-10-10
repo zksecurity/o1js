@@ -171,11 +171,13 @@ function provableExtends<
   } satisfies ProvableHashable<S, InferValue<A>>;
 }
 
-function mapValue<A extends ProvableHashable<any>, V extends InferValue<A>, W>(
+function mapValue<A extends ProvableExtended<any>, V extends InferValue<A>, W>(
   provable: A,
   there: (x: V) => W,
   back: (x: W) => V
-): ProvableHashable<InferProvable<A>, W> {
+): IsPure<A> extends true
+  ? ProvablePureExtended<InferProvable<A>, W, InferJson<A>>
+  : ProvableExtended<InferProvable<A>, W, InferJson<A>> {
   return {
     sizeInFields() {
       return provable.sizeInFields();
@@ -204,5 +206,11 @@ function mapValue<A extends ProvableHashable<any>, V extends InferValue<A>, W>(
     toInput(value) {
       return provable.toInput(value);
     },
-  };
+    toJSON(x) {
+      return provable.toJSON(x);
+    },
+    fromJSON(x) {
+      return provable.fromJSON(x);
+    },
+  } satisfies ProvableExtended<InferProvable<A>, W, InferJson<A>> as any;
 }

@@ -207,7 +207,7 @@ class Bytes {
   static _size?: number;
   static _provable?: ProvablePureExtended<
     Bytes,
-    { bytes: { value: bigint }[] },
+    { bytes: bigint[] },
     { bytes: { value: string }[] }
   >;
 
