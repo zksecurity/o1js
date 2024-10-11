@@ -31,12 +31,7 @@
   },
   "types": "./dist/node/index.d.ts",
   "files": [
-    "src/build",
-    "dist",
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "dist/**/*.map",
-    "src/**/*.map"
+    "dist/node"
   ],
   "bin": {
     "snarky-run": "src/build/run.js"
